@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="mypackage",  # Replace with your package name
+    name="pyzohocrm",  # Replace with your package name
     version="0.1",
     description="A Basic Zoho Crm utility Package with Token Management",
     author="Rahul Kumar",
