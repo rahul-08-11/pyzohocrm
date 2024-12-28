@@ -4,7 +4,7 @@ import requests
 from typing import Literal
 from .utils import *
 
-class ZOHOAPI():
+class ZohoApi():
     """
     A utility class to interact with the Zoho CRM API. This class provides methods to perform CRUD operations
     and manage attachments for Zoho CRM modules.
@@ -16,7 +16,7 @@ class ZOHOAPI():
 
     def __init__(self, base_url: str) -> None:
         """
-        Initializes the ZOHOAPI class with the given base URL.
+        Initializes the ZohoApi class with the given base URL.
 
         Args:
             base_url (str): The base URL of the Zoho CRM API.

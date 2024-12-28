@@ -1,1 +1,1 @@
-from .api import ZOHOAPI
+from .api import ZohoApi

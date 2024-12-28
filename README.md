@@ -1,6 +1,6 @@
-# ZOHOCRMAPI - A Simplified Zoho CRM Python Client
+# pyzohocrm - A Simplified Zoho CRM Python Client
 
-ZOHOCRMAPI is a lightweight Python package designed for interacting with Zoho CRM. It provides a simpler and more intuitive alternative to the official Zoho Python SDK while including built-in token management for hassle-free authentication.
+pyzohocrm is a lightweight Python package designed for interacting with Zoho CRM. It provides a simpler and more intuitive alternative to the official Zoho Python SDK while including built-in token management for hassle-free authentication.
 
 ## Features
 
