@@ -1,99 +1,216 @@
 import os
 import logging
-import aiohttp
-from token_manager import TokenManager
-from typing import Literal
-import os
 import requests
+from typing import Literal
+from .utils import *
 
+class ZOHOAPI():
+    """
+    A utility class to interact with the Zoho CRM API. This class provides methods to perform CRUD operations
+    and manage attachments for Zoho CRM modules.
 
-class ZOHOAPI(TokenManager):
-    def __init__(self):
-        # Initialize the base class Methods
-        super().__init__()
-        self.base_url = os.getenv("ZOHO_BASE_URL")
-        self.payload = {"data": []}
+    Attributes:
+        base_url (str): The base URL for the Zoho CRM API.
+        logger (logging.Logger): Logger instance for logging API events and errors.
+    """
+
+    def __init__(self, base_url: str) -> None:
+        """
+        Initializes the ZOHOAPI class with the given base URL.
+
+        Args:
+            base_url (str): The base URL of the Zoho CRM API.
+        """
+        self.base_url = base_url
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
-    def _get_headers(self):
-        return {
-            "Authorization": f"Zoho-oauthtoken {self.get_access_token()}",
-            "Content-Type": "application/json"
-        }
+    def _make_request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str, data=None, files=None, token=None) -> requests.Response:
+        """
+        Makes an HTTP request to the Zoho CRM API.
 
-    async def _make_async_request(self, method : Literal["GET", "POST", "PUT", "DELETE","PATCH"], url : str, data : str):
+        Args:
+            method (Literal): The HTTP method (e.g., GET, POST, PUT, DELETE, PATCH).
+            url (str): The full API endpoint URL.
+            data (dict, optional): The JSON payload for the request.
+            files (dict, optional): Files to be uploaded.
+            token (str, optional): Authorization token.
+
+        Returns:
+            requests.Response: The response object from the API request.
+
+        Raises:
+            requests.RequestException: If an HTTP error occurs.
+            Exception: For any unexpected errors.
+        """
         try:
-            with aiohttp.ClientSession() as session:
-                with session.request(method, url, headers=self._get_headers(), json=data) as response:
-                    return response.json()  # Return JSON content
-        except aiohttp.ClientError as e:
+            response = requests.request(method, url, headers=get_header(token=token), json=data, files=files)
+            response.raise_for_status()
+            return response
+        except requests.RequestException as e:
             self.logger.error(f"HTTP error occurred: {e}")
             raise
         except Exception as e:
             self.logger.error(f"Unexpected error: {e}")
             raise
 
+    def create_record(self, moduleName: str, data: dict, token: str = None) -> requests.Response:
+        """
+        Creates a new record in the specified Zoho CRM module.
 
-    def _make_request(self, method : Literal["GET", "POST", "PUT", "DELETE","PATCH"], url : str, data : str):
-        try:
-            
-            response = requests.Request(method, url, headers=self._get_headers(), json=data)
-            return response
+        Args:
+            moduleName (str): The name of the Zoho CRM module.
+            data (dict): The record data to be created.
+            token (str, optional): Authorization token.
 
-        except Exception as e:
-            self.logger.error(f"Unexpected error: {e}")
-            raise
-
-        
-    # Basic CRUD operations
-    def create(self, moduleName: str, data: dict):
+        Returns:
+            requests.Response: The response object.
+        """
         url = f"{self.base_url}/{moduleName}"
-        return self._make_request("POST", url, json=data)
+        return self._make_request("POST", url, data=data, token=token)
 
-    def read(self, moduleName: str, id: str = None):
+    def read_record(self, moduleName: str, id: str = None, token: str = None) -> requests.Response:
+        """
+        Reads records or a specific record from the specified Zoho CRM module.
+
+        Args:
+            moduleName (str): The name of the Zoho CRM module.
+            id (str, optional): The record ID. If None, fetches all records.
+            token (str, optional): Authorization token.
+
+        Returns:
+            requests.Response: The response object.
+        """
         url = f"{self.base_url}/{moduleName}"
         if id:
             url += f"/{id}"
-        return self._make_request("GET", url)
+        return self._make_request("GET", url, token=token)
 
-    def update(self, moduleName: str, id: str, data: dict):
+    def fetch_module_data(self, moduleName: str, token: str = None) -> requests.Response:
+        """
+        Fetches data from a specified module.
+
+        Args:
+            moduleName (str): The name of the Zoho CRM module.
+            token (str, optional): Authorization token.
+
+        Returns:
+            requests.Response: The response object.
+        """
+        url = f"{self.base_url}/{moduleName}"
+        return self._make_request("GET", url, token=token)
+
+    def update_record(self, moduleName: str, id: str, data: dict, token: str = None) -> requests.Response:
+        """
+        Updates a specific record in the specified Zoho CRM module.
+
+        Args:
+            moduleName (str): The name of the Zoho CRM module.
+            id (str): The record ID to update.
+            data (dict): The updated record data.
+            token (str, optional): Authorization token.
+
+        Returns:
+            requests.Response: The response object.
+        """
         url = f"{self.base_url}/{moduleName}/{id}"
-        return self._make_request("PUT", url, json=data)
+        return self._make_request("PUT", url, data=data, token=token)
 
-    def partial_update(self, moduleName: str, id: str, data: dict):
+    def patch_record(self, moduleName: str, id: str, data: dict, token: str = None) -> requests.Response:
+        """
+        Partially updates a specific record in the specified Zoho CRM module.
+
+        Args:
+            moduleName (str): The name of the Zoho CRM module.
+            id (str): The record ID to update.
+            data (dict): The data to update.
+            token (str, optional): Authorization token.
+
+        Returns:
+            requests.Response: The response object.
+        """
         url = f"{self.base_url}/{moduleName}/{id}"
-        return self._make_request("PATCH", url, data={"data":[data]})
+        return self._make_request("PATCH", url, data={"data": [data]}, token=token)
 
-    def delete(self, moduleName: str, id: str):
+    def delete_record(self, moduleName: str, id: str, token: str = None) -> requests.Response:
+        """
+        Deletes a specific record in the specified Zoho CRM module.
+
+        Args:
+            moduleName (str): The name of the Zoho CRM module.
+            id (str): The record ID to delete.
+            token (str, optional): Authorization token.
+
+        Returns:
+            requests.Response: The response object.
+        """
         url = f"{self.base_url}/{moduleName}/{id}"
-        return self._make_request("DELETE", url)
+        return self._make_request("DELETE", url, token=token)
 
-    # Advanced operations
-    def attach_file(self, moduleName: str, id: str, file_path: str = None, file_url: str = None):
-        url = f"{self.base_url}/{moduleName}/{id}/Attachments"
-        data = {}
+    def attach_file(self, moduleName: str, record_id: str, file_path: str = None, file_url: str = None, token: str = None) -> requests.Response:
+        """
+        Attaches a file to a specific record in the specified Zoho CRM module.
 
+        Args:
+            moduleName (str): The name of the Zoho CRM module.
+            id (str): The record ID to attach the file to.
+            file_path (str, optional): The path to the local file to attach.
+            file_url (str, optional): The URL of the file to attach.
+            token (str, optional): Authorization token.
+
+        Returns:
+            requests.Response: The response object.
+
+        Raises:
+            ValueError: If neither file_path nor file_url is provided.
+        """
+        url = f"{self.base_url}/{moduleName}/{record_id}/Attachments"
+        
         if file_path:
-            # Use `with` to ensure file is properly closed
             with open(file_path, "rb") as f:
                 files = {"file": f}
-                data = {}
-                return self._make_request("POST", url, data=data, files=files)
-
+                return self._make_request("POST", url, files=files, token=token)
         elif file_url:
-            data["attachmentUrl"] = file_url
-            return self._make_request("POST", url, data=data)
-
+            data = {"attachmentUrl": file_url}
+            return self._make_request("POST", url, data=data, token=token)
         else:
             raise ValueError("Either file_path or file_url must be provided.")
 
-    def fetch_file(self, moduleName: str, id: str = None, file_id: str = None):
-        if file_id:
-            url = f"{self.base_url}/{moduleName}/{id}/Attachments/{file_id}"
-            return self._make_request("GET", url)
-        elif id:
-            url = f"{self.base_url}/{moduleName}/{id}/Attachments"
-            return self._make_request("GET", url)
+    def fetch_file(self, moduleName: str, record_id: str, file_id: str = None, token: str = None, fetch_all: bool = True) -> requests.Response:
+        """
+        Fetches file attachments from a specific record in the specified Zoho CRM module.
+
+        This function allows you to:
+        - Fetch all attachments associated with a specific record, by setting `fetch_all=True` (default behavior).
+        - Fetch a specific file attachment from a record, by providing both `record_id` and `file_id` and setting `fetch_all=False`.
+
+        Args:
+            moduleName (str): The name of the Zoho CRM module.
+            record_id (str): The record ID for which attachments are to be fetched. This is a required argument.
+            file_id (str, optional): The specific file ID to fetch. Required if `fetch_all` is set to False.
+            token (str, optional): Authorization token.
+            fetch_all (bool, optional): If True, fetch all attachments for the given record. If False, fetch a specific file attachment. Defaults to True.
+
+        Returns:
+            requests.Response: The response object containing the attachment(s).
+
+        Raises:
+            ValueError: If `file_id` is not provided when `fetch_all` is False, or if `record_id` is not provided.
+
+        Example:
+            - To fetch all attachments for a specific record:
+                fetch_file('Leads', '12345')
+            - To fetch a specific file attachment for a record:
+                fetch_file('Leads', '12345', file_id='67890', fetch_all=False)
+        """
+        if not record_id:
+            raise ValueError("record_id is required.")
+
+        if fetch_all:
+            url = f"{self.base_url}/{moduleName}/{record_id}/Attachments"
         else:
-            raise ValueError("Either file_id or id must be provided.")
+            if not file_id:
+                raise ValueError("file_id must be provided when fetch_all is False.")
+            url = f"{self.base_url}/{moduleName}/{record_id}/Attachments/{file_id}"
+
+        return self._make_request("GET", url, token=token)
