@@ -30,56 +30,84 @@ pip install git+https://github.com/rahul-08-11/pyzohocrm.git
 ### Importing and Initializing
 
 ```python
-from your_package_name.zoho_api import ZOHOAPI
+from pyzohocrm import zohoApi
 
 # Initialize with your Zoho CRM base URL
-api = ZOHOAPI(base_url="https://www.zohoapis.com/crm/v2")
+api = zohoApi(base_url="https://www.zohoapis.com/crm/v2")
 ```
+
 
 ### Example Operations
 
 #### Create a Record
 ```python
-response = api.create(moduleName="Leads", data={"Company": "Acme Corp", "Last_Name": "Doe"}, token="your_access_token")
+response = api.create_record(moduleName="Leads", data={"Company": "Acme Corp", "Last_Name": "Doe"}, token="your_access_token")
 print(response.json())
 ```
 
 #### Read Records
 ```python
-response = api.read(moduleName="Leads", token="your_access_token")
+response = api.read_record(moduleName="Leads", token="your_access_token")
 print(response.json())
 ```
 
 #### Update a Record
 ```python
-response = api.update(moduleName="Leads", id="record_id", data={"Last_Name": "Smith"}, token="your_access_token")
+response = api.update_record(moduleName="Leads", id="record_id", data={"Last_Name": "Smith"}, token="your_access_token")
+print(response.json())
+```
+
+#### Partially Update a Record
+```python
+response = api.patch_record(moduleName="Leads", id="record_id", data={"First_Name": "John"}, token="your_access_token")
+print(response.json())
+```
+
+#### Delete a Record
+```python
+response = api.delete_record(moduleName="Leads", id="record_id", token="your_access_token")
 print(response.json())
 ```
 
 #### Attach a File
 ```python
-response = api.attach_file(moduleName="Leads", id="record_id", file_path="/path/to/file.pdf", token="your_access_token")
+response = api.attach_file(moduleName="Leads", record_id="record_id", file_path="/path/to/file.pdf", token="your_access_token")
 print(response.json())
 ```
 
-#### Fetch a File
+#### Fetch All Attachments
 ```python
-response = api.fetch_file(moduleName="Leads", record_id="record_id", file_id="file_id", token="your_access_token")
+response = api.fetch_file(moduleName="Leads", record_id="record_id", token="your_access_token")
+print(response.json())
+```
+
+#### Fetch a Specific File Attachment
+```python
+response = api.fetch_file(moduleName="Leads", record_id="record_id", file_id="file_id", token="your_access_token", fetch_all=False)
 with open("downloaded_file.pdf", "wb") as file:
     file.write(response.content)
 ```
 
+
 ## Token Management
 
-This package includes built-in support for managing tokens. Use the `get_header()` utility to generate headers with the correct authorization token.
+This package includes built-in support for managing tokens. Use the `TokenManager` utility to generate token initilizer.
 
 ### Example
 
 ```python
-from your_package_name.utils import get_header
+from pyzohocrm import TokenManager
 
-headers = get_header(token="your_access_token")
-print(headers)
+token_instance = TokenManager(domain_name="Canada",
+                                            refresh_token="####.######.##################",
+                                            client_id="########.#######################",
+                                            client_secret="####################.#######################",
+                                            grant_type="refresh_token")
+```
+Use `get_access_token()` method on token instace to fetch the token
+
+```
+token = token_instance.get_access_token()
 ```
 
 ## Logging
