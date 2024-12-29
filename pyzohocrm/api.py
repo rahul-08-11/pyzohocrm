@@ -205,6 +205,9 @@ class ZohoApi():
         """
         if not record_id:
             raise ValueError("record_id is required.")
+        
+        if not token:
+            raise ValueError("token is required.")
 
         if fetch_all:
             url = f"{self.base_url}/{moduleName}/{record_id}/Attachments"
@@ -212,5 +215,35 @@ class ZohoApi():
             if not file_id:
                 raise ValueError("file_id must be provided when fetch_all is False.")
             url = f"{self.base_url}/{moduleName}/{record_id}/Attachments/{file_id}"
+
+        return self._make_request("GET", url, token=token)
+    
+    def fetch_related_list(self, moduleName: str, record_id: str, token: str, name : str) -> requests.Response:
+        """
+        Fetches related list data from a specific record in the specified Zoho CRM module.
+
+        Args:
+            moduleName (str): The name of the Zoho CRM module.
+            record_id (str): The record ID for which related list data is to be fetched.
+            token (str): Authorization token.
+            name (str): The name of the related list to fetch.
+
+        Returns:
+            requests.Response: The response object containing the related list data.
+
+        Raises:
+            ValueError: If `record_id` is not provided, `token` is not provided, or `name` is not provided.
+
+        """
+        if not record_id:
+            raise ValueError("record_id is required.")
+
+        if not token:
+            raise ValueError("token is required.")
+        
+        if not name:
+            raise ValueError("name is required.")
+        
+        url = f"{self.base_url}/{moduleName}/{record_id}/{name}"
 
         return self._make_request("GET", url, token=token)
