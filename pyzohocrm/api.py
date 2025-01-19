@@ -25,7 +25,7 @@ class ZohoApi():
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
-    def _make_request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str, data=None, files=None, token=None) -> requests.Response:
+    def _make_request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str, json=None,data=None, files=None, token=None) -> requests.Response:
         """
         Makes an HTTP request to the Zoho CRM API.
 
@@ -44,8 +44,8 @@ class ZohoApi():
             Exception: For any unexpected errors.
         """
         try:
-            response = requests.request(method, url, headers=get_header(token=token), json=data, files=files)
-            response.raise_for_status()
+            response = requests.request(method, url, headers=get_header(token=token), json=json, data=data, files=files)
+            # response.raise_for_status()
             return response
         except requests.RequestException as e:
             self.logger.error(f"HTTP error occurred: {e}")
@@ -67,7 +67,7 @@ class ZohoApi():
             requests.Response: The response object.
         """
         url = f"{self.base_url}/{moduleName}"
-        return self._make_request("POST", url, data=data, token=token)
+        return self._make_request("POST", url, json=data, token=token)
 
     def read_record(self, moduleName: str, id: str = None, token: str = None) -> requests.Response:
         """
@@ -114,7 +114,7 @@ class ZohoApi():
             requests.Response: The response object.
         """
         url = f"{self.base_url}/{moduleName}/{id}"
-        return self._make_request("PUT", url, data=data, token=token)
+        return self._make_request("PUT", url, json=data, token=token)
 
     def patch_record(self, moduleName: str, id: str, data: dict, token: str = None) -> requests.Response:
         """
@@ -130,7 +130,7 @@ class ZohoApi():
             requests.Response: The response object.
         """
         url = f"{self.base_url}/{moduleName}/{id}"
-        return self._make_request("PATCH", url, data={"data": [data]}, token=token)
+        return self._make_request("PATCH", url, json={"data": [data]}, token=token)
 
     def delete_record(self, moduleName: str, id: str, token: str = None) -> requests.Response:
         """
