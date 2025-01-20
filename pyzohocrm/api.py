@@ -247,3 +247,9 @@ class ZohoApi():
         url = f"{self.base_url}/{moduleName}/{record_id}/{name}"
 
         return self._make_request("GET", url, token=token)
+
+
+    def search_record(self, moduleName: str, query: str, token: str = None) -> requests.Response:
+        params = {"criteria": query}
+
+        return self._make_request("GET", f"{self.base_url}/{moduleName}/search", params=params, token=token)
