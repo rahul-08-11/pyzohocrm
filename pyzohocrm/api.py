@@ -25,7 +25,7 @@ class ZohoApi():
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
-    def _make_request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str, json=None,data=None, files=None, token=None) -> requests.Response:
+    def _make_request(self, method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"], url: str, json=None,data=None, files=None, params=None, token=None) -> requests.Response:
         """
         Makes an HTTP request to the Zoho CRM API.
 
@@ -44,8 +44,8 @@ class ZohoApi():
             Exception: For any unexpected errors.
         """
         try:
-            response = requests.request(method, url, headers=get_header(token=token), json=json, data=data, files=files)
-            # response.raise_for_status()
+            response = requests.request(method, url, headers=get_header(token=token), json=json, data=data, files=files, params=params)
+            response.raise_for_status()
             return response
         except requests.RequestException as e:
             self.logger.error(f"HTTP error occurred: {e}")
