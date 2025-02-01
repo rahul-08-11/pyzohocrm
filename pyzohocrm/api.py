@@ -250,6 +250,41 @@ class ZohoApi():
 
 
     def search_record(self, moduleName: str, query: str, token: str = None) -> requests.Response:
+        """
+        Searches for records in a specified Zoho CRM module based on a given query.
+
+        Args:
+            moduleName (str): The name of the Zoho CRM module.
+            query (str): The search query.
+            token (str, optional): Authorization token.
+
+        Returns:
+            requests.Response: The response object containing the search results.
+
+        Raises:
+            ValueError: If `moduleName` is not provided, `query` is not provided, or `token` is not provided.
+
+        Example:
+            - To search for records in the 'Leads' module with 'John Doe' in the 'Company' field:
+                search_record('Leads', '(Company:John Doe)')
+        """
         params = {"criteria": query}
 
         return self._make_request("GET", f"{self.base_url}/{moduleName}/search", params=params, token=token)
+    
+
+    def mass_update(self, moduleName: str, data: dict, token: str = None) -> requests.Response:
+
+        """
+        Performs a mass update on records within the specified Zoho CRM module.
+
+        Args:
+            moduleName (str): The name of the Zoho CRM module.
+            data (dict): The data for the records to be updated.
+            token (str, optional): Authorization token.
+
+        Returns:
+            requests.Response: The response object containing the result of the mass update operation.
+        """
+
+        return self._make_request("PUT", f"{self.base_url}/{moduleName}", json=data, token=token)
